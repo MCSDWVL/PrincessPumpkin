@@ -7,7 +7,8 @@
   <title>Princess Pumpkin Party</title>
   <style>
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-    html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; }
+    /* Disable double-tap zoom everywhere, including the space left by a popped pumpkin. */
+    html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; touch-action: manipulation; }
     body { background: #e7d8ef; color: #674576; font-family: "Trebuchet MS", "Arial Rounded MT Bold", sans-serif; user-select: none; -webkit-user-select: none; }
     button { font: inherit; touch-action: manipulation; cursor: pointer; }
     button:focus-visible { outline: 4px solid #9160c1; outline-offset: 5px; }
