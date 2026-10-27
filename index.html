@@ -1,0 +1,534 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f6eafa">
+  <title>Princess Pumpkin Party</title>
+  <style>
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; }
+    body { background: #e7d8ef; color: #674576; font-family: "Trebuchet MS", "Arial Rounded MT Bold", sans-serif; user-select: none; -webkit-user-select: none; }
+    button { font: inherit; touch-action: manipulation; cursor: pointer; }
+    button:focus-visible { outline: 4px solid #9160c1; outline-offset: 5px; }
+    svg { display: block; width: 100%; height: 100%; overflow: visible; }
+    .symbols { position: absolute; width: 0; height: 0; overflow: hidden; }
+    .game { position: relative; height: calc(100% - 28px); height: calc(100dvh - 28px); margin: 14px; overflow: hidden; isolation: isolate; border-radius: 27px; background: #fbf0f5; border: 2px solid #fff8fc; }
+    .landscape { position: absolute; inset: 0; pointer-events: none; }
+    .landscape svg { overflow: hidden; }
+    header { position: absolute; z-index: 3; top: 6%; left: 20%; right: 20%; text-align: center; pointer-events: none; }
+    h1 { margin: 0; font-family: Georgia, "Times New Roman", serif; font-size: clamp(32px, 4.8vw, 68px); line-height: .98; font-weight: normal; letter-spacing: -2px; color: #79518d; }
+    h1 span { display: block; color: #ca7198; font-style: italic; }
+    .sound { position: absolute; z-index: 6; top: 28px; left: 28px; display: flex; align-items: center; gap: 8px; padding: 11px 15px; background: #fffafbd9; color: #8a689b; border: 1px solid #eadcec; border-radius: 30px; font-size: 12px; font-weight: bold; }
+    .sound svg { width: 20px; height: 20px; }
+    .sound .on-waves { display: none; }
+    .sound[aria-pressed="true"] .on-waves { display: block; }
+    .sound[aria-pressed="true"] .off-line { display: none; }
+    .score-card { position: absolute; z-index: 4; right: 28px; top: 26px; min-width: 105px; padding: 12px 18px; border: 1px solid #eadcec; border-radius: 23px; background: #fffafbe6; text-align: center; box-shadow: 0 5px 0 #bfa0cc0d; }
+    .score-main { display: flex; justify-content: center; align-items: center; gap: 9px; }
+    .score-main svg { width: 31px; height: 31px; }
+    #score { font-size: 32px; line-height: 1.1; font-weight: bold; font-variant-numeric: tabular-nums; }
+    .score-label { display: block; margin-top: 5px; text-transform: uppercase; font-size: 9px; font-weight: bold; letter-spacing: 2px; color: #ae8bb9; }
+    .patch { position: absolute; z-index: 2; left: 34%; right: 5%; top: 32%; bottom: 13%; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(0, 1fr)); gap: 14px; }
+    .slot { display: flex; justify-content: center; align-items: center; position: relative; min-width: 0; min-height: 0; }
+    .pumpkin { border: 0; padding: 0; background: transparent; width: min(100%, 190px); height: min(100%, 170px); position: relative; animation: sprout .4s cubic-bezier(.2, 1.5, .4, 1) both; }
+    .pumpkin svg { transition: filter .15s; }
+    @media (hover: hover) { .pumpkin:hover svg { filter: brightness(1.07) drop-shadow(0 0 9px #fff5b8aa); } }
+    .pumpkin:active svg { transform: scale(.9); }
+    .pumpkin .eye { transform-box: fill-box; transform-origin: center; animation: blink 5.8s infinite; animation-delay: var(--blink); }
+    .princess-area { position: absolute; z-index: 3; left: 6%; bottom: 11%; width: 25%; height: 53%; pointer-events: none; }
+    .princess { position: absolute; bottom: 0; width: 100%; height: 100%; transform-origin: 50% 95%; }
+    .princess .arm { transform-origin: 171px 177px; animation: wave 2.8s ease-in-out infinite; }
+    .princess .princess-eyes { transform-box: fill-box; transform-origin: center; animation: blink 6.7s infinite; }
+    .speech { position: absolute; z-index: 1; top: -11%; left: 50%; transform: translateX(-50%) rotate(-4deg); white-space: nowrap; background: #fffafc; border: 1px solid #ecd5e8; border-radius: 20px; padding: 12px 21px; color: #b36495; font-size: clamp(14px, 1.6vw, 22px); font-weight: bold; box-shadow: 0 4px 0 #d6bdd52b; }
+    .speech::after { content: ""; position: absolute; bottom: -7px; left: 45%; width: 12px; height: 12px; background: #fffafc; border-right: 1px solid #ecd5e8; border-bottom: 1px solid #ecd5e8; transform: rotate(45deg); }
+    .garden-note { position: absolute; bottom: 4%; left: 0; right: 0; text-align: center; font-size: 10px; font-weight: bold; letter-spacing: 3px; color: #987da5; pointer-events: none; }
+    .garden-note span { color: #cb8fac; padding: 0 10px; }
+    .garden-note { transition: opacity .6s; }
+    .game.has-candy .garden-note { opacity: 0; }
+    #candy-pile { position: absolute; inset: 0; z-index: 1; pointer-events: none; overflow: hidden; }
+    .pile-candy { position: absolute; top: 0; left: 0; filter: drop-shadow(0 2px 1px #77538330); }
+    #effects { position: fixed; inset: 0; z-index: 10; overflow: hidden; pointer-events: none; }
+    .particle { position: absolute; width: 33px; height: 33px; will-change: transform, opacity; }
+    .pop-label { position: absolute; font-size: 32px; font-weight: bold; color: #b26694; text-shadow: 0 2px white, 2px 0 white, 0 -2px white, -2px 0 white; }
+    .rainbow { position: absolute; z-index: 1; top: 18%; left: 24%; width: 65%; height: 68%; opacity: 0; pointer-events: none; }
+    @keyframes sprout { from { transform: scale(.25); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    @keyframes blink { 0%, 44%, 48%, 100% { transform: scaleY(1); } 46% { transform: scaleY(.12); } }
+    @keyframes wave { 0%, 55%, 100% { transform: rotate(0deg); } 65%, 85% { transform: rotate(-14deg); } 75%, 95% { transform: rotate(7deg); } }
+    @media (max-width: 640px) and (orientation: portrait) {
+      .game { margin: 7px; height: calc(100% - 14px); height: calc(100dvh - 14px); border-radius: 22px; }
+      header { top: 9%; left: 8%; right: 8%; }
+      h1 { font-size: clamp(32px, 9vw, 49px); letter-spacing: -1.5px; }
+      .sound { top: 12px; left: 12px; padding: 9px; }
+      .sound span { display: none; }
+      .score-card { top: 10px; right: 12px; padding: 6px 11px; min-width: 65px; border-radius: 17px; }
+      .score-main { gap: 5px; }
+      .score-main svg { width: 22px; height: 22px; }
+      #score { font-size: 23px; }
+      .score-label { font-size: 7px; letter-spacing: 1px; margin-top: 2px; }
+      .patch { top: 29%; bottom: 27%; left: 8%; right: 8%; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: repeat(3, minmax(0, 1fr)); gap: 4px 24px; }
+      .pumpkin { max-width: 146px; }
+      .princess-area { left: 12%; bottom: 4%; height: 23%; width: 36%; }
+      .speech { left: 112%; top: 30%; font-size: 16px; padding: 10px 15px; transform: rotate(-4deg); }
+      .speech::after { left: -7px; bottom: 12px; transform: rotate(135deg); }
+      .garden-note { bottom: 1.7%; font-size: 7px; letter-spacing: 2px; }
+      .rainbow { left: 0; top: 27%; width: 100%; height: 45%; }
+    }
+    @media (max-height: 500px) and (orientation: landscape) {
+      .game { margin: 6px; height: calc(100% - 12px); height: calc(100dvh - 12px); border-radius: 19px; }
+      header { top: 6%; }
+      h1 { font-size: 31px; }
+      h1 span { display: inline; }
+      .sound { top: 14px; left: 14px; padding: 8px; }
+      .sound span { display: none; }
+      .score-card { top: 11px; right: 14px; min-width: 70px; padding: 6px 10px; }
+      #score { font-size: 24px; }
+      .score-label { font-size: 7px; }
+      .score-main svg { width: 24px; height: 24px; }
+      .patch { top: 30%; bottom: 8%; gap: 3px 15px; }
+      .princess-area { height: 62%; bottom: 7%; }
+      .speech { top: -6%; padding: 7px 12px; font-size: 13px; }
+      .garden-note { bottom: 2%; font-size: 7px; }
+    }
+  </style>
+</head>
+<body>
+  <svg class="symbols" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <defs>
+      <linearGradient id="pumpkinSkin" x2="0" y2="1"><stop stop-color="#ffb95b"/><stop offset="1" stop-color="#f38b4d"/></linearGradient>
+      <linearGradient id="pumpkinMiddle" x2="0" y2="1"><stop stop-color="#ffcb70"/><stop offset="1" stop-color="#ffa451"/></linearGradient>
+      <linearGradient id="dress" x2=".8" y2="1"><stop stop-color="#f8a3c9"/><stop offset="1" stop-color="#ce7eb8"/></linearGradient>
+      <linearGradient id="sky" x2="0" y2="1"><stop stop-color="#fbf0f5"/><stop offset="1" stop-color="#eee2f6"/></linearGradient>
+      <symbol id="pumpkin-art" viewBox="0 0 180 160">
+        <ellipse cx="90" cy="145" rx="65" ry="9" fill="#9e7fa7" opacity=".14"/>
+        <path d="M91 41Q81 23 95 12" fill="none" stroke="#77965d" stroke-width="10" stroke-linecap="round"/>
+        <path d="M94 30Q113 10 129 22Q121 41 96 34" fill="#91b879"/>
+        <path d="M97 32L119 24" stroke="#729a60" stroke-width="2" stroke-linecap="round"/>
+        <ellipse cx="55" cy="88" rx="41" ry="51" fill="url(#pumpkinSkin)" stroke="#ed9952" stroke-width="2"/>
+        <ellipse cx="125" cy="88" rx="41" ry="51" fill="url(#pumpkinSkin)" stroke="#ed9952" stroke-width="2"/>
+        <ellipse cx="72" cy="88" rx="38" ry="55" fill="url(#pumpkinSkin)" stroke="#ed9952" stroke-width="2"/>
+        <ellipse cx="108" cy="88" rx="38" ry="55" fill="url(#pumpkinSkin)" stroke="#ed9952" stroke-width="2"/>
+        <ellipse cx="90" cy="88" rx="29" ry="56" fill="url(#pumpkinMiddle)"/>
+        <path d="M52 54Q44 58 42 67" fill="none" stroke="#ffdb97" stroke-width="6" stroke-linecap="round"/>
+        <ellipse cx="56" cy="101" rx="11" ry="7" fill="#ee7f73" opacity=".65"/>
+        <ellipse cx="124" cy="101" rx="11" ry="7" fill="#ee7f73" opacity=".65"/>
+        <g class="eye"><ellipse cx="69" cy="87" rx="5" ry="7" fill="#6d443d"/><circle cx="70.5" cy="84.5" r="1.8" fill="#fff8e6"/></g>
+        <g class="eye"><ellipse cx="111" cy="87" rx="5" ry="7" fill="#6d443d"/><circle cx="112.5" cy="84.5" r="1.8" fill="#fff8e6"/></g>
+        <path d="M78 102Q90 119 102 102Z" fill="#784843"/>
+        <path d="M84 110Q90 104 97 110Q90 116 84 110" fill="#f3a09b"/>
+      </symbol>
+      <symbol id="candy-art" viewBox="0 0 48 48">
+        <path d="M14 18L3 12L5 25L2 33L16 30M34 18L45 12L43 25L46 33L32 30" fill="currentColor" stroke="#fff9f5" stroke-width="2.5" stroke-linejoin="round"/>
+        <rect x="12" y="13" width="24" height="23" rx="9" fill="currentColor" stroke="#fff9f5" stroke-width="2.5"/>
+        <path d="M19 15L28 34M27 14L34 28" stroke="#fff" stroke-width="5" opacity=".65"/>
+      </symbol>
+      <symbol id="heart-art" viewBox="0 0 40 40"><path d="M20 34C15 29 3 23 3 13C3 2 17 2 20 11C24 2 37 2 37 13C37 23 25 30 20 34Z" fill="currentColor"/><path d="M9 13Q9 8 14 9" stroke="white" stroke-opacity=".7" stroke-width="3" stroke-linecap="round" fill="none"/></symbol>
+      <symbol id="star-art" viewBox="0 0 40 40"><path d="M20 2L26 13L38 16L29 25L31 38L20 32L9 38L11 25L2 16L14 13Z" fill="currentColor" stroke="#fff9ed" stroke-width="2" stroke-linejoin="round"/></symbol>
+      <symbol id="lolly-art" viewBox="0 0 40 48"><path d="M20 24V45" stroke="#fffaf5" stroke-width="5" stroke-linecap="round"/><circle cx="20" cy="17" r="15" fill="currentColor" stroke="#fff9f5" stroke-width="2"/><path d="M20 17C13 12 23 7 27 14C33 25 12 29 11 17C10 7 21 4 26 8" stroke="#fff9f5" stroke-width="3" fill="none" stroke-linecap="round"/></symbol>
+      <symbol id="flower" viewBox="0 0 40 60"><path d="M20 30V57M20 49Q5 46 8 38Q21 38 20 49M20 44Q33 41 32 34Q20 34 20 44" fill="#9eb49a" stroke="#9eb49a" stroke-width="2"/><g fill="currentColor"><ellipse cx="20" cy="15" rx="7" ry="10"/><ellipse cx="20" cy="31" rx="7" ry="10"/><ellipse cx="12" cy="23" rx="10" ry="7"/><ellipse cx="28" cy="23" rx="10" ry="7"/></g><circle cx="20" cy="23" r="6" fill="#ffe5a1"/></symbol>
+    </defs>
+  </svg>
+
+  <main class="game" aria-label="Princess Pumpkin Party game">
+    <div class="landscape" aria-hidden="true">
+      <svg viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice">
+        <rect width="1440" height="900" fill="url(#sky)"/>
+        <g fill="#fffafc" opacity=".85">
+          <path d="M70 185Q37 183 42 160Q46 140 72 145Q72 111 103 113Q127 111 137 137Q167 125 179 148Q210 143 214 164Q215 185 185 185Z"/>
+          <path d="M1164 170Q1139 167 1144 149Q1148 133 1170 137Q1172 110 1197 110Q1221 108 1229 133Q1254 124 1268 146Q1296 145 1294 161Q1292 173 1273 173Z"/>
+          <path d="M953 274Q928 274 931 256Q934 238 959 241Q964 217 986 224Q1002 225 1006 245Q1034 243 1034 259Q1032 274 1014 274Z" opacity=".6"/>
+        </g>
+        <g fill="#d4badf" opacity=".45">
+          <path d="M1115 461V340H1148V461M1191 461V309H1228V461M1136 461V383H1208V461"/>
+          <path d="M1105 342L1131 302L1158 342ZM1181 311L1210 268L1238 311Z" fill="#bb9dce"/>
+          <path d="M1210 269V247L1233 253L1210 261" fill="#d79aba"/>
+          <path d="M1161 461V426Q1174 404 1187 426V461" fill="#b49ac6"/>
+          <rect x="1126" y="359" width="9" height="16" rx="4" fill="#b49ac6"/><rect x="1205" y="333" width="9" height="16" rx="4" fill="#b49ac6"/>
+        </g>
+        <path d="M0 493Q209 361 450 483Q682 334 926 456Q1196 353 1440 455V900H0Z" fill="#e4d5ee"/>
+        <path d="M0 598Q325 446 646 582Q1008 413 1440 565V900H0Z" fill="#d8c8e6"/>
+        <path d="M0 740Q379 542 788 690Q1180 533 1440 671V900H0Z" fill="#cdbfdd"/>
+        <path d="M0 805Q368 700 684 812Q1066 667 1440 778V900H0Z" fill="#c3b7d4" opacity=".6"/>
+        <g fill="none" stroke="#b7a7ca" stroke-width="3" stroke-linecap="round" opacity=".5"><path d="M516 749l-5-14m5 14l6-20m-6 20l14-7M1050 673l-5-14m5 14l6-20m-6 20l14-7M1184 808l-5-14m5 14l6-20m-6 20l14-7M174 700l-5-14m5 14l6-20"/></g>
+        <use href="#flower" x="70" y="699" width="36" height="54" color="#f7d7e8"/>
+        <use href="#flower" x="107" y="725" width="25" height="38" color="#f5edf9"/>
+        <use href="#flower" x="1247" y="695" width="43" height="65" color="#f3d3e5"/>
+        <use href="#flower" x="1293" y="729" width="29" height="44" color="#f9edf4"/>
+        <use href="#flower" x="953" y="805" width="29" height="44" color="#f7dfec"/>
+        <g transform="translate(191 794)"><path d="M-8 0L-12 28Q0 34 12 28L8 0" fill="#fbeddc"/><path d="M-32 3Q-27-31 0-32Q27-31 32 3Q0 14-32 3" fill="#c285ab"/><g fill="#ffe3e9"><circle cx="-14" cy="-11" r="5"/><circle cx="7" cy="-20" r="5"/><circle cx="17" cy="-4" r="4"/></g></g>
+        <g fill="#fff3d4" opacity=".8"><path d="M314 277l3 8l8 3l-8 3l-3 8l-3-8l-8-3l8-3ZM1064 203l3 8l8 3l-8 3l-3 8l-3-8l-8-3l8-3ZM1333 376l3 8l8 3l-8 3l-3 8l-3-8l-8-3l8-3Z"/></g>
+      </svg>
+    </div>
+
+    <header>
+      <h1>Princess <span>Pumpkin Party</span></h1>
+    </header>
+
+    <button class="sound" id="sound" aria-label="Turn sound on" aria-pressed="false" title="Turn sound on">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 4L6 8H3V16H6L11 20Z"/><path class="on-waves" d="M15 8Q19 12 15 16M18 5Q25 12 18 19"/><path class="off-line" d="M16 9L22 15M22 9L16 15"/></svg>
+      <span id="sound-label">Sound off</span>
+    </button>
+
+    <div class="score-card" role="status" aria-label="Pumpkins popped">
+      <div class="score-main"><svg viewBox="0 0 40 40" aria-hidden="true" style="color:#e9bb63"><use href="#star-art"/></svg><span id="score">0</span></div>
+      <span class="score-label">Pumpkins popped</span>
+    </div>
+
+    <div class="rainbow" id="rainbow" aria-hidden="true"><svg viewBox="0 0 600 360"><g fill="none" stroke-width="24" opacity=".65"><path d="M60 330A240 240 0 0 1 540 330" stroke="#f4a1bc"/><path d="M84 330A216 216 0 0 1 516 330" stroke="#fac490"/><path d="M108 330A192 192 0 0 1 492 330" stroke="#f9e7a0"/><path d="M132 330A168 168 0 0 1 468 330" stroke="#b8d8bf"/><path d="M156 330A144 144 0 0 1 444 330" stroke="#b8c9ec"/></g><g fill="#fff5fc"><ellipse cx="91" cy="330" rx="68" ry="25"/><ellipse cx="509" cy="330" rx="68" ry="25"/></g></svg></div>
+
+    <div class="princess-area">
+      <div class="speech" id="speech">Hello, pumpkin!</div>
+      <svg class="princess" id="princess" viewBox="0 0 250 350" role="img" aria-label="A happy princess waving in a pink dress">
+        <ellipse cx="125" cy="335" rx="94" ry="11" fill="#a18caf" opacity=".2"/>
+        <path d="M70 124Q55 53 124 52Q191 48 185 130L192 221Q154 249 64 218Z" fill="#ae704e"/>
+        <path d="M79 138Q60 162 70 208M175 135Q196 167 181 210" fill="none" stroke="#c78b5c" stroke-width="15" stroke-linecap="round"/>
+        <path d="M99 322L95 337Q109 345 119 337L117 320M135 320L134 337Q148 345 159 337L153 320" fill="#ae6596"/>
+        <path d="M93 177Q75 186 55 168" fill="none" stroke="#f6c9ac" stroke-width="15" stroke-linecap="round"/>
+        <circle cx="52" cy="166" r="10" fill="#f6c9ac"/>
+        <path d="M48 165L42 156M53 162L51 152" stroke="#f6c9ac" stroke-width="6" stroke-linecap="round"/>
+        <g class="arm"><path d="M166 177Q192 176 199 147" fill="none" stroke="#f6c9ac" stroke-width="15" stroke-linecap="round"/><circle cx="201" cy="141" r="10" fill="#f6c9ac"/><path d="M196 138L193 129M202 136L203 125M207 139L214 131" stroke="#f6c9ac" stroke-width="6" stroke-linecap="round"/></g>
+        <path d="M99 199Q75 217 36 316Q126 351 214 316Q181 228 151 199" fill="url(#dress)" stroke="#c97dae" stroke-width="2"/>
+        <path d="M114 211Q107 268 79 325M136 212Q143 269 174 325" fill="none" stroke="#ffcae0" stroke-width="3" opacity=".65"/>
+        <path d="M42 303Q125 334 208 303L214 316Q126 351 36 316Z" fill="#f6bcda"/>
+        <path d="M94 166Q125 150 157 166L151 205Q125 218 99 205Z" fill="#ec96c1"/>
+        <circle cx="94" cy="176" r="15" fill="#f8b7d5"/><circle cx="159" cy="176" r="15" fill="#f8b7d5"/>
+        <path d="M112 154V170Q125 181 138 170V153" fill="#f6c9ac"/>
+        <path d="M98 201Q126 211 152 201" fill="none" stroke="#ffe2a0" stroke-width="6"/>
+        <path d="M125 194L132 203L125 213L118 203Z" fill="#fff0b8"/>
+        <ellipse cx="125" cy="113" rx="49" ry="49" fill="#f8cfb2"/>
+        <circle cx="77" cy="119" r="9" fill="#f6c9ac"/><circle cx="173" cy="119" r="9" fill="#f6c9ac"/>
+        <path d="M77 107Q69 60 109 59Q153 38 175 83L176 111Q156 105 139 75Q121 104 77 107" fill="#ba7a50"/>
+        <path d="M87 86Q103 65 125 66" fill="none" stroke="#d69a64" stroke-width="7" stroke-linecap="round"/>
+        <g class="princess-eyes" fill="#694438"><ellipse cx="107" cy="117" rx="4.2" ry="6"/><ellipse cx="146" cy="117" rx="4.2" ry="6"/></g>
+        <ellipse cx="94" cy="130" rx="10" ry="6" fill="#eea29f" opacity=".7"/><ellipse cx="158" cy="130" rx="10" ry="6" fill="#eea29f" opacity=".7"/>
+        <path d="M115 134Q126 148 138 134Z" fill="#995754"/><path d="M121 141Q127 136 133 141" fill="#eea1aa"/>
+        <circle cx="78" cy="129" r="4" fill="#ffe49a"/><circle cx="173" cy="129" r="4" fill="#ffe49a"/>
+        <path d="M94 61L87 28L108 41L124 15L140 41L161 28L154 61Q124 70 94 61" fill="#f7d67d" stroke="#e4b967" stroke-width="2" stroke-linejoin="round"/>
+        <path d="M97 57Q124 64 151 57" fill="none" stroke="#ffedb1" stroke-width="4"/>
+        <path d="M124 36L131 46L124 56L117 46Z" fill="#d485b2"/>
+        <g fill="#fff0b9"><circle cx="87" cy="27" r="4"/><circle cx="124" cy="14" r="4"/><circle cx="162" cy="27" r="4"/></g>
+        <g fill="#ffe5ad"><path d="M91 253l3 6l7 1l-5 5l1 7l-6-3l-6 3l1-7l-5-5l7-1ZM158 282l3 6l7 1l-5 5l1 7l-6-3l-6 3l1-7l-5-5l7-1Z"/><circle cx="139" cy="245" r="3"/><circle cx="110" cy="296" r="3"/><circle cx="65" cy="297" r="2.5"/><circle cx="181" cy="305" r="2.5"/></g>
+      </svg>
+    </div>
+
+    <div class="patch" id="patch" role="group" aria-label="Pumpkin garden"></div>
+    <div class="garden-note" aria-hidden="true">POP <span>✦</span> GIGGLE <span>✦</span> REPEAT</div>
+    <div id="candy-pile" aria-hidden="true"></div>
+  </main>
+  <div id="effects" aria-hidden="true"></div>
+
+  <script>
+    (() => {
+      'use strict';
+      const patch = document.getElementById('patch');
+      const effects = document.getElementById('effects');
+      const candyPile = document.getElementById('candy-pile');
+      const game = document.querySelector('.game');
+      const scoreDisplay = document.getElementById('score');
+      const princess = document.getElementById('princess');
+      const speech = document.getElementById('speech');
+      const rainbow = document.getElementById('rainbow');
+      const soundButton = document.getElementById('sound');
+      const colors = ['#ec91b6', '#af96db', '#85c6bb', '#f2c16a', '#f6a17e', '#8dbbe2'];
+      const cheers = ['Hooray!', 'Candy magic!', 'Hee hee!', 'So sparkly!', 'Yippee!', 'Sweet surprise!'];
+      const slots = Array.from({ length: 6 }, () => {
+        const slot = document.createElement('div');
+        slot.className = 'slot';
+        patch.append(slot);
+        return slot;
+      });
+      let score = 0;
+      let soundOn = false;
+      let audioContext;
+      let speechTimer;
+      let princessAnimation;
+      let scoreAnimation;
+      let rainbowAnimation;
+      const random = (min, max) => min + Math.random() * (max - min);
+      const collectedCandy = [];
+      let pileLayout;
+      let pileFrame = 0;
+      let lastPileTime = 0;
+      let settleUntil = 0;
+
+      function drawCandy(candy) {
+        candy.element.style.transform = `translate(${candy.x - candy.size / 2}px,${candy.y - candy.size / 2}px) rotate(${candy.rotation}rad)`;
+      }
+
+      function constrainCandy(candy) {
+        const margin = candy.size * .72;
+        if (candy.x < margin || candy.x > pileLayout.width - margin) {
+          candy.x = Math.max(margin, Math.min(pileLayout.width - margin, candy.x));
+          candy.vx *= -.2;
+        }
+        if (candy.y > pileLayout.height - margin) {
+          candy.y = pileLayout.height - margin;
+          if (candy.vy > 0) candy.vy *= -.12;
+          candy.vx *= .7;
+          candy.spin *= .7;
+        }
+      }
+
+      function stepPile(time) {
+        const dt = Math.min((time - lastPileTime) / 1000 || 1 / 60, 1 / 30);
+        lastPileTime = time;
+        for (const candy of collectedCandy) {
+          candy.vy += 520 * dt;
+          candy.x += candy.vx * dt;
+          candy.y += candy.vy * dt;
+          candy.rotation += candy.spin * dt;
+          constrainCandy(candy);
+        }
+        // Round candy bodies collide and slide into gaps, making an irregular
+        // heap. Wrappers overlap a little, as they would in a real candy pile.
+        for (let pass = 0; pass < 5; pass++) {
+          for (let i = 0; i < collectedCandy.length; i++) {
+            const a = collectedCandy[i];
+            for (let j = i + 1; j < collectedCandy.length; j++) {
+              const b = collectedCandy[j];
+              const dx = b.x - a.x, dy = b.y - a.y;
+              const radius = (a.size + b.size) * .34;
+              const squaredDistance = dx * dx + dy * dy;
+              if (squaredDistance >= radius * radius) continue;
+              const distance = Math.sqrt(squaredDistance);
+              const nx = distance > .001 ? dx / distance : 1;
+              const ny = distance > .001 ? dy / distance : 0;
+              const overlap = (radius - distance) / 2;
+              a.x -= nx * overlap; a.y -= ny * overlap;
+              b.x += nx * overlap; b.y += ny * overlap;
+              const approach = (b.vx - a.vx) * nx + (b.vy - a.vy) * ny;
+              if (approach < 0) {
+                const impulse = approach * .53;
+                a.vx += impulse * nx; a.vy += impulse * ny;
+                b.vx -= impulse * nx; b.vy -= impulse * ny;
+                // Contact friction keeps the heap from rolling into a flat row.
+                a.vx *= .78; b.vx *= .78;
+                a.spin *= .75; b.spin *= .75;
+              }
+            }
+          }
+          collectedCandy.forEach(constrainCandy);
+        }
+        collectedCandy.forEach(drawCandy);
+        pileFrame = time < settleUntil ? requestAnimationFrame(stepPile) : 0;
+      }
+
+      function wakePile() {
+        settleUntil = performance.now() + 6500;
+        if (!pileFrame && collectedCandy.length) {
+          lastPileTime = performance.now();
+          pileFrame = requestAnimationFrame(stepPile);
+        }
+      }
+
+      function resizePile() {
+        const bounds = candyPile.getBoundingClientRect();
+        const previous = pileLayout;
+        pileLayout = { width: bounds.width, height: bounds.height, capacity: Math.max(24, Math.min(200, Math.floor(bounds.width / 32) * 6)) };
+        while (collectedCandy.length > pileLayout.capacity) {
+          collectedCandy.shift().element.remove();
+        }
+        collectedCandy.forEach(candy => {
+          candy.x *= bounds.width / previous.width;
+          candy.y = bounds.height - (previous.height - candy.y);
+          candy.y = Math.max(candy.size, candy.y);
+          candy.vx = 0; candy.vy = 0;
+          constrainCandy(candy);
+          drawCandy(candy);
+        });
+        wakePile();
+      }
+
+      function collectCandy(x, y) {
+        game.classList.add('has-candy');
+        const bounds = candyPile.getBoundingClientRect();
+        for (let i = 0; i < 2; i++) {
+          // Recycle buried pieces during long sessions; the heap stays bounded.
+          if (collectedCandy.length >= pileLayout.capacity) {
+            collectedCandy.shift().element.remove();
+          }
+          const element = document.createElement('div');
+          element.className = 'pile-candy';
+          element.style.color = colors[Math.floor(random(0, colors.length))];
+          element.innerHTML = '<svg viewBox="0 0 48 48"><use href="#candy-art"/></svg>';
+          const size = random(28, 38);
+          element.style.width = element.style.height = `${size}px`;
+          const startX = x - bounds.left + random(-10, 10);
+          const startY = y - bounds.top;
+          const flightTime = (150 + Math.sqrt(150 * 150 + 1040 * Math.max(0, bounds.height - startY))) / 520;
+          const destination = bounds.width * .55 + random(-Math.min(70, bounds.width * .14), Math.min(70, bounds.width * .14));
+          const candy = { element, size, x: startX, y: startY, vx: (destination - startX) / flightTime, vy: -150, rotation: random(-Math.PI, Math.PI), spin: random(-4, 4) };
+          collectedCandy.push(candy);
+          drawCandy(candy);
+          candyPile.append(element);
+        }
+        wakePile();
+      }
+
+      function animateAway(element, frames, options) {
+        // Bound the particle count even during enthusiastic multi-finger play.
+        while (effects.childElementCount >= 180) {
+          const oldest = effects.firstElementChild;
+          oldest.getAnimations().forEach(animation => animation.cancel());
+          oldest.remove();
+        }
+        effects.append(element);
+        const animation = element.animate(frames, options);
+        animation.finished.then(() => element.remove(), () => element.remove());
+      }
+
+      function particle(x, y, kind, color, dx, dy, duration, size = 33) {
+        const element = document.createElement('div');
+        element.className = 'particle';
+        element.style.cssText = `left:${x - size / 2}px;top:${y - size / 2}px;width:${size}px;height:${size}px;color:${color}`;
+        element.innerHTML = `<svg viewBox="0 0 ${kind === 'candy' ? '48 48' : kind === 'lolly' ? '40 48' : '40 40'}"><use href="#${kind}-art"/></svg>`;
+        const spin = random(-230, 230);
+        animateAway(element, [
+          { transform: 'translate(0,0) scale(.4) rotate(0deg)', opacity: 0 },
+          { transform: `translate(${dx * .3}px,${dy * .65}px) scale(1.15) rotate(${spin * .3}deg)`, opacity: 1, offset: .22 },
+          { transform: `translate(${dx * .8}px,${dy}px) scale(1) rotate(${spin * .8}deg)`, opacity: 1, offset: .65 },
+          { transform: `translate(${dx}px,${dy + 110}px) scale(.6) rotate(${spin}deg)`, opacity: 0 }
+        ], { duration, easing: 'ease-out', fill: 'forwards' });
+      }
+
+      function burst(x, y) {
+        collectCandy(x, y);
+        for (let i = 0; i < 18; i++) {
+          const angle = (i / 18) * Math.PI * 2;
+          const distance = random(75, 180);
+          particle(x, y, ['candy', 'lolly', 'star'][i % 3], colors[i % colors.length], Math.cos(angle) * distance, Math.sin(angle) * distance - 85, random(850, 1300), random(23, 42));
+        }
+        const label = document.createElement('div');
+        label.className = 'pop-label';
+        label.textContent = '+1';
+        label.style.cssText = `left:${x - 18}px;top:${y - 30}px`;
+        animateAway(label, [{ transform: 'translateY(0) scale(.6)', opacity: 1 }, { transform: 'translateY(-90px) scale(1.2)', opacity: 0 }], { duration: 950, easing: 'ease-out' });
+      }
+
+      function cheer(milestone) {
+        clearTimeout(speechTimer);
+        speech.textContent = milestone ? 'Rainbow party!' : cheers[Math.floor(Math.random() * cheers.length)];
+        speechTimer = setTimeout(() => { speech.textContent = 'More pumpkins!'; }, 2300);
+        princessAnimation?.cancel();
+        princessAnimation = princess.animate([
+          { transform: 'translateY(0) rotate(0)' },
+          { transform: 'translateY(-20px) rotate(-5deg)', offset: .28 },
+          { transform: 'translateY(0) rotate(3deg)', offset: .55 },
+          { transform: 'translateY(-10px) rotate(-3deg)', offset: .77 },
+          { transform: 'translateY(0) rotate(0)' }
+        ], { duration: 650, easing: 'ease-in-out' });
+        const rect = princess.getBoundingClientRect();
+        for (let i = 0; i < 4; i++) {
+          particle(rect.x + rect.width / 2, rect.y + rect.height * .35, 'heart', colors[i % 2], random(-75, 75), random(-110, -55), 1100, random(17, 29));
+        }
+        if (milestone) {
+          rainbowAnimation?.cancel();
+          rainbowAnimation = rainbow.animate([{ opacity: 0, transform: 'scale(.8)' }, { opacity: .9, transform: 'scale(1)', offset: .2 }, { opacity: .9, transform: 'scale(1)', offset: .7 }, { opacity: 0, transform: 'scale(1.06)' }], { duration: 2600, easing: 'ease-out' });
+          for (let i = 0; i < 38; i++) {
+            particle(random(0, innerWidth), random(-60, 20), i % 3 ? 'candy' : 'star', colors[i % colors.length], random(-80, 80), innerHeight * .7, random(1800, 2700), random(22, 40));
+          }
+        }
+      }
+
+      function playNotes(milestone) {
+        if (!soundOn || !audioContext || audioContext.state !== 'running') return;
+        const notes = milestone ? [523.25, 659.25, 783.99, 1046.5] : [659.25, 880];
+        notes.forEach((frequency, i) => {
+          const start = audioContext.currentTime + i * .105;
+          const oscillator = audioContext.createOscillator();
+          const gain = audioContext.createGain();
+          oscillator.type = 'sine';
+          oscillator.frequency.setValueAtTime(frequency, start);
+          gain.gain.setValueAtTime(0, start);
+          gain.gain.linearRampToValueAtTime(.055, start + .012);
+          gain.gain.exponentialRampToValueAtTime(.001, start + .25);
+          oscillator.connect(gain);
+          gain.connect(audioContext.destination);
+          oscillator.start(start);
+          oscillator.stop(start + .27);
+          oscillator.onended = () => { oscillator.disconnect(); gain.disconnect(); };
+        });
+      }
+
+      function popPumpkin(button) {
+        if (!button.isConnected || button.disabled) return;
+        button.disabled = true;
+        const rect = button.getBoundingClientRect();
+        button.remove();
+        score += 1;
+        scoreDisplay.textContent = String(score);
+        scoreAnimation?.cancel();
+        scoreAnimation = scoreDisplay.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.3)' }, { transform: 'scale(1)' }], { duration: 260 });
+        burst(rect.x + rect.width / 2, rect.y + rect.height / 2);
+        cheer(score % 10 === 0);
+        playNotes(score % 10 === 0);
+        setTimeout(addPumpkin, 550);
+      }
+
+      function addPumpkin() {
+        if (document.hidden) return;
+        const empty = slots.filter(slot => !slot.firstElementChild);
+        if (empty.length <= 1) return;
+        const slot = empty[Math.floor(Math.random() * empty.length)];
+        const button = document.createElement('button');
+        button.className = 'pumpkin';
+        button.type = 'button';
+        button.setAttribute('aria-label', 'Pop a pumpkin!');
+        button.style.setProperty('--blink', `${random(-6, 0)}s`);
+        button.innerHTML = '<svg viewBox="0 0 180 160" aria-hidden="true"><use href="#pumpkin-art"/></svg>';
+        button.addEventListener('pointerdown', event => {
+          if (event.button !== 0) return;
+          event.preventDefault();
+          popPumpkin(button);
+        });
+        // Keyboard and assistive-technology activation use click instead.
+        button.addEventListener('click', () => popPumpkin(button));
+        slot.append(button);
+      }
+
+      function updateSoundButton() {
+        soundButton.setAttribute('aria-pressed', String(soundOn));
+        soundButton.setAttribute('aria-label', soundOn ? 'Turn sound off' : 'Turn sound on');
+        soundButton.title = soundOn ? 'Turn sound off' : 'Turn sound on';
+        document.getElementById('sound-label').textContent = soundOn ? 'Sound on' : 'Sound off';
+      }
+
+      soundButton.addEventListener('click', async () => {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContextClass) {
+          document.getElementById('sound-label').textContent = 'Sound unavailable';
+          soundButton.setAttribute('aria-label', 'Sound unavailable in this browser');
+          return;
+        }
+        soundOn = !soundOn;
+        updateSoundButton();
+        try {
+          audioContext ||= new AudioContextClass();
+          if (soundOn) {
+            await audioContext.resume();
+            // The child may have switched it back off while resume was pending.
+            if (soundOn) playNotes(false);
+            else await audioContext.suspend();
+          } else {
+            await audioContext.suspend();
+          }
+        } catch {
+          soundOn = false;
+          updateSoundButton();
+        }
+      });
+
+      resizePile();
+      new ResizeObserver(resizePile).observe(candyPile);
+      for (let i = 0; i < 3; i++) addPumpkin();
+      setInterval(addPumpkin, 900);
+      document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) {
+          addPumpkin();
+          wakePile();
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
