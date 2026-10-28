@@ -2,15 +2,15 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
   <meta name="theme-color" content="#f6eafa">
   <title>Princess Pumpkin Party</title>
   <style>
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-    /* Disable double-tap zoom everywhere, including the space left by a popped pumpkin. */
-    html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; touch-action: manipulation; }
+    /* This full-screen toddler game handles touch input instead of browser gestures. */
+    html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; touch-action: none; }
     body { background: #e7d8ef; color: #674576; font-family: "Trebuchet MS", "Arial Rounded MT Bold", sans-serif; user-select: none; -webkit-user-select: none; }
-    button { font: inherit; touch-action: manipulation; cursor: pointer; }
+    button { font: inherit; touch-action: none; cursor: pointer; }
     button:focus-visible { outline: 4px solid #9160c1; outline-offset: 5px; }
     svg { display: block; width: 100%; height: 100%; overflow: visible; }
     .symbols { position: absolute; width: 0; height: 0; overflow: hidden; }
@@ -478,7 +478,8 @@
         button.style.setProperty('--blink', `${random(-6, 0)}s`);
         button.innerHTML = '<svg viewBox="0 0 180 160" aria-hidden="true"><use href="#pumpkin-art"/></svg>';
         button.addEventListener('pointerdown', event => {
-          if (event.button !== 0) return;
+          // Touch is activated by the non-passive touchstart handler below.
+          if (event.pointerType === 'touch' || event.button !== 0) return;
           event.preventDefault();
           popPumpkin(button);
         });
@@ -518,6 +519,25 @@
           updateSoundButton();
         }
       });
+
+      // iPhone Safari can still recognize double-tap zoom when a tapped pumpkin
+      // disappears. Cancel native touch gestures before removing its target,
+      // then activate buttons ourselves so rapid taps still work immediately.
+      // Explicit passive:false is essential for document-level touch listeners.
+      const touchOptions = { passive: false, capture: true };
+      const cancelGesture = event => { if (event.cancelable) event.preventDefault(); };
+      document.addEventListener('touchstart', event => {
+        cancelGesture(event);
+        const buttons = new Set();
+        for (const touch of event.changedTouches) {
+          const button = touch.target instanceof Element ? touch.target.closest('button') : null;
+          if (button && game.contains(button)) buttons.add(button);
+        }
+        buttons.forEach(button => button.click());
+      }, touchOptions);
+      for (const type of ['touchmove', 'touchend', 'gesturestart', 'gesturechange', 'gestureend', 'dblclick']) {
+        document.addEventListener(type, cancelGesture, touchOptions);
+      }
 
       resizePile();
       new ResizeObserver(resizePile).observe(candyPile);
